@@ -24,6 +24,7 @@
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
+            <td><a href="/urls/<%= url %>"><button type="button">Edit</button></a></td>
             <td>
               <form action="/urls/<%= url %>/delete?_method=DELETE"" method="POST">
               <label for="shortURL" aria-label="Delete"></label>
