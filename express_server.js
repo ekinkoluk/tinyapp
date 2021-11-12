@@ -131,6 +131,12 @@ app.post("/login", (req, res) => {
       u_password = req.body.password;
       res.cookie("user_id", getUserByEmail(u_email)["id"]); 
     }
+    else{
+      res.sendStatus(403);
+    }
+  }
+  if(!checkEmailExists(u_email)){
+      res.sendStatus(403);
   }
   
   res.redirect('/urls');
