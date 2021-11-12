@@ -123,14 +123,21 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  let email = req.body.email;
-  let password = req.bosy.password;
-  res.cookie("user_id", getUserByEmail(email)["id"]); // Saves the user's username to a username cookie
+  let u_email = '';
+  let u_password = '';
+  for (let user in usersDatabase) {
+    if (usersDatabase[user]['email'] === req.body.email && req.body.password === usersDatabase[user]['password']) {
+      u_email = req.body.email;
+      u_password = req.body.password;
+      res.cookie("user_id", getUserByEmail(u_email)["id"]); 
+    }
+  }
+  
   res.redirect('/urls');
 });
 
 app.post("/logout", (req,res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect('/urls');
 });
 
