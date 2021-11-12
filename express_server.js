@@ -47,6 +47,7 @@ function getUserById(userId) {
 function getUserByEmail(userEmail) {
   for (id in usersDatabase) {
     if (usersDatabase[id]['email'] === userEmail) {
+      console.log("hey",urlDatabase);
       return usersDatabase[id];
     }
   }
@@ -76,16 +77,23 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = {
-    user: getUserById(req.cookies.user_id)
-  };
-  res.render("urls_new", templateVars);
+  let templateVars = { user: getUserById(req.cookies.user_id) };
+    let user_id = req.cookies.user_id
+    if(user_id){
+      res.render("urls_new", templateVars);
+    }else{
+      res.status(403).redirect("/login");
+    }
+    
+    
+ 
 });
+
 
 app.get("/urls", (req,res) => {
   const templateVars = {
     urls: urlDatabase,
-    user: getUserById(req.cookies["user_id"])
+    user: getUserById(req.cookies.user_id)
   };
   res.render("urls_index", templateVars);
   
@@ -99,7 +107,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user_id: req.cookies["user_id"] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: getUserById(req.cookies.user_id) };
   res.render("urls_show", templateVars);
 });
 
@@ -118,7 +126,7 @@ app.post('/urls/:shortURL/', (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  templateVars = {user: getUserByEmail(req.cookies.user_id)};
+  templateVars = {user: getUserById(req.cookies.user_id)};
   res.render("login", templateVars);
 });
 
