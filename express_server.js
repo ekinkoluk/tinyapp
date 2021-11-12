@@ -51,6 +51,14 @@ function getUserByEmail(userEmail) {
     }
   }
 }
+function checkEmailExists(userEmail) {
+  for (id in usersDatabase) {
+    if (usersDatabase[id]['email'] === userEmail) {
+      return true;
+    }
+  }
+  return false;
+}
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
@@ -134,11 +142,16 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   let email = req.body.email;
   let password =req.body.password;
- 
-  let userId = addNewUser(email, password);
-  console.log("usersadatabase" ,usersDatabase);
+  if (email === "" || password === "") {
+    res.status(400).send('<h1>Error!</h1> <p>You need to enter values for email and password.</p>');
+  } else if(checkEmailExists(email)){
+    res.status(400).send('<h1>Error!</h1> <p>This email already has an account. Try another one.</p>');
+  }else{
+    let userId = addNewUser(email, password);
+  }
+
     // Set up user ID cookie
-  res.cookie("userId", userId);
+  res.cookie("user_id", getUserByEmail(email)["id"]);
    res.redirect("/urls");
 
 });
