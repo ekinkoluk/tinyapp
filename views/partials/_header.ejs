@@ -11,19 +11,23 @@
       </div>
       
     </div>
-    <div>
-      <% if (user) { %>
-        <h6>Logged in as: <%= user.email %>
-        <form class="form-inline" action="/logout" method="POST">
-        <button type="submit" class="btn btn-primary">Logout</button>
+   
+<div class="header">
+  <div class="links">
+    <% if (user) { %>
+      <div class="header-logout">
+        <p>Logged in as: <%= user.email %></p>
+        <form action="/logout" method="POST">
+        <button type="submit" class="logout">Logout</button>
         </form>
-      <% } else { %>
-        <form class="form-inline" action="/login" method="POST">
-          <label for="username">Username:</label>
-          <input class="form-control" type="text" name="username">
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-      <% } %>
-    </div>
+        </h6>
+      </div>
+      <hr>
+    <% } else { %>
+      <h6><a href="/register">Sign Up</a></h6>
+      <h6><a href="/login">Login</a></h6>
+    <% } %>
+  </div>
+</div>
   </nav>
 </header>
