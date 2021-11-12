@@ -19,6 +19,15 @@ function generateRandomString() {
   }
   return randomString;
 }
+function addNewUser(userEmail, userPassword) {
+  let userID = generateRandomString();
+  usersDatabase[userID] = {
+    id: userID,
+    email: userEmail,
+    password: userPassword
+  };
+  return userID;
+}
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
@@ -84,7 +93,10 @@ app.post("/logout", (req,res) => {
   res.redirect('/urls');
 });
 
-
+app.get("/register", (req, res) => {
+  const templateVars = {username: req.body.username};
+  res.render("register", templateVars);
+});
 
 
 app.listen(PORT, () => {
