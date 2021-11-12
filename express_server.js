@@ -8,6 +8,7 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+const usersDatabase = { };
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -19,6 +20,7 @@ function generateRandomString() {
   }
   return randomString;
 }
+
 function addNewUser(userEmail, userPassword) {
   let userID = generateRandomString();
   usersDatabase[userID] = {
@@ -28,6 +30,7 @@ function addNewUser(userEmail, userPassword) {
   };
   return userID;
 }
+
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
@@ -98,6 +101,17 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+app.post("/register", (req, res) => {
+  let email = req.body.email;
+  let password =req.body.password;
+ 
+  let userId = addNewUser(email, password);
+  console.log("usersadatabase" ,usersDatabase);
+    // Set up user ID cookie
+  res.cookie("userId", userId);
+   res.redirect("/urls");
+
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
