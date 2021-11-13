@@ -1,21 +1,26 @@
 const PORT = 8080; // default port 8080
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const app = express();
 
-const cookieParser = require('cookie-parser');
-
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys :['key1', 'key2']
+}));
 app.use(bodyParser.urlencoded({extended: true}));
-const cookieSession = require('cookie-session');
 app.set('view engine', "ejs");
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 const usersDatabase = { };
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+
+
+
 
 function generateRandomString() {
   let randomString = '';
@@ -28,10 +33,11 @@ function generateRandomString() {
 
 function addNewUser(userEmail, userPassword) {
   let user_id = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(userPassword, 10);
   usersDatabase[user_id] = {
     id: user_id,
     email: userEmail,
-    password: userPassword
+    password: hashedPassword
   };
   return user_id;
 }
@@ -77,17 +83,18 @@ function urlsForUser(id) {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   if(urlDatabase[shortURL] === false) {
-    const templateVars = {
-      user_id : null,
-      email : null
-    };
-    return res.render()
+    res.sendStatus(404);
   }
   const longURL = urlDatabase[req.params.shortURL]['longURL'];
   res.redirect(longURL);
 });
+
 app.get("/", (req, res) => {
-  res.redirect ('urls');
+  if(req.session.user_id){
+  res.redirect ('/urls');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -98,8 +105,8 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { user: getUserById(req.cookies.user_id) };
-    let user_id = req.cookies.user_id
+  let templateVars = { user: req.session.user_id };
+    let user_id = req.session.user_id;
     if(user_id){
       res.render("urls_new", templateVars);
     }else{
@@ -114,7 +121,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls", (req,res) => {
   const templateVars = {
     urls: urlDatabase,
-    user: getUserById(req.cookies.user_id)
+    user: req.session.user_id
   };
   res.render("urls_index", templateVars);
   
@@ -147,7 +154,7 @@ app.post('/urls/:shortURL/', (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  templateVars = {user: getUserById(req.cookies.user_id)};
+  templateVars = {user: req.session.user_id};
   res.render("login", templateVars);
 });
 
@@ -155,10 +162,10 @@ app.post("/login", (req, res) => {
   let u_email = '';
   let u_password = '';
   for (let user in usersDatabase) {
-    if (usersDatabase[user]['email'] === req.body.email && req.body.password === usersDatabase[user]['password']) {
+    if (usersDatabase[user]['email'] === req.body.email && bcrypt.compareSync(req.body.password === usersDatabase[user]['password'])) {
       u_email = req.body.email;
       u_password = req.body.password;
-      res.cookie("user_id", getUserByEmail(u_email)["id"]); 
+      req.session.user_id = usersDatabase[user]['id'];
     }
     else{
       res.sendStatus(403);
@@ -172,12 +179,15 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req,res) => {
-  res.clearCookie("user_id");
+  res.session = null;
   res.redirect('/urls');
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = {user: getUserById(req.cookies.user_id)};
+  const templateVars = {user: req.session.user_id, users:usersDatabase};
+  if(req.session.user_id){
+    res.redirect('/urls/');
+  }
   res.render("register", templateVars);
 });
 
@@ -189,14 +199,13 @@ app.post("/register", (req, res) => {
   } else if(checkEmailExists(email)){
     res.status(400).send('<h1>Error!</h1> <p>This email already has an account. Try another one.</p>');
   }else{
-    let userId = addNewUser(email, password);
+    req.session.user_id = addNewUser(email, password);
+    res.redirect("/urls");
   }
-
-    // Set up user ID cookie
-  res.cookie("user_id", getUserByEmail(email)["id"]);
-   res.redirect("/urls");
-
 });
+
+   
+  
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
