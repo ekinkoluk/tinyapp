@@ -1,8 +1,13 @@
-const express = require("express");
-const app = express();
 const PORT = 8080; // default port 8080
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const app = express();
+
 const cookieParser = require('cookie-parser');
+
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: true}));
+const cookieSession = require('cookie-session');
 app.set('view engine', "ejs");
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -38,7 +43,14 @@ function checkIdExists(userId) {
   }
   return false;
 }
-
+function checkEmailExists(userEmail) {
+  for (id in usersDatabase) {
+    if (usersDatabase[id]['email'] === userEmail) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function getUserById(userId) {
   return usersDatabase[userId];
@@ -52,21 +64,30 @@ function getUserByEmail(userEmail) {
     }
   }
 }
-function checkEmailExists(userEmail) {
-  for (id in usersDatabase) {
-    if (usersDatabase[id]['email'] === userEmail) {
-      return true;
+function urlsForUser(id) {
+  let userUrls = { };
+  for (shortUrl in urlDatabase) {
+    if (urlDatabase[shortUrl]['userId'] === id) {
+      userUrls[shortUrl] = {...urlDatabase[shortUrl]};
     }
   }
-  return false;
+  return userUrls;
 }
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  if(urlDatabase[shortURL] === false) {
+    const templateVars = {
+      user_id : null,
+      email : null
+    };
+    return res.render()
+  }
+  const longURL = urlDatabase[req.params.shortURL]['longURL'];
   res.redirect(longURL);
 });
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect ('urls');
 });
 
 app.get("/urls.json", (req, res) => {
