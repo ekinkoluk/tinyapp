@@ -13,10 +13,7 @@ app.use(cookieSession({
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', "ejs");
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+const urlDatabase = { };
 const usersDatabase = { };
 
 
@@ -87,7 +84,7 @@ const getEmailFromId = (user_id) => {
 
 app.get("/", (req, res) => {
   if(req.session.user_id){
-  res.redirect ('/urls/new');
+  res.redirect ('/urls');
   } else {
     res.redirect('/login');
   }
@@ -95,7 +92,7 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req,res) => {
  
-  const templateVars = {
+  let templateVars = {
     urls: urlsForUser(req.session.user_id),
     user: getUserById(req.session.user_id),
     user_id: req.session.user_id,
@@ -104,7 +101,7 @@ app.get("/urls", (req,res) => {
   if(req.session.user_id) {
     res.render("urls_index", templateVars);
   }else {
-    res.redirect('/login');
+     res.redirect('/login');
   }
 });
 
@@ -141,22 +138,25 @@ app.get("/urls/new", (req, res) => {
 
   app.get("/urls/:shortURL", (req, res) => {
     const shortURL = req.params.shortURL;
-    if (!req.session.user_id) {
-      return res.redirect('/login');
+    if (!req.session.user_id || req.session.user_id !== urlDatabase[shortURL].userID) {
+      res.status(400).send("<h1>Error!</h1> <p>You do not have access to this page. Please login with another account.<p>");
     } else if (req.session.user_id !== urlDatabase[shortURL].userID) {
      res.status(400);
     }
-    const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user_id: getUserById(req.session.user_id), email: getEmailFromId(req.session.user_id) };
+    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user_id: getUserById(req.session.user_id), email: getEmailFromId(req.session.user_id) };
     return res.render("urls_show", templateVars);
   });
 
 
-
-
-
-
-
-
+  app.post('/urls/:shortURL/delete', (req, res) => {
+    if(!req.session.user_id || req.session.user_id !== urlDatabase[req.params.shortURL].userID){
+      res.render("login", templateVars);
+    } 
+    
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
+ 
+});
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -177,19 +177,6 @@ app.get("/hello", (req, res) => {
 
 
 
-
-
-
-
-
-
-
-app.post('/urls/:shortURL/delete', (req, res) => {
-
-    delete urlDatabase[req.params.shortURL];
-    res.redirect('/urls');
- 
-});
 app.post('/urls/:shortURL/', (req, res) => {
   if (req.session.user_id) {
     urlDatabase[req.params.shortURL]['longURL'] = req.body.longURL; 
@@ -205,7 +192,7 @@ app.get("/login", (req, res) => {
   if(req.session.user_id){
     res.redirect('/urls');
   }
-  templateVars = {user_id: req.session.user_id, email: getEmailFromId(req.session.user_id)};
+ let templateVars = {user_id: req.session.user_id, email: getEmailFromId(req.session.user_id)};
   res.render("login", templateVars);
 });      
 
@@ -231,7 +218,7 @@ app.post("/logout", (req,res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = {user_id: req.session.user_id, email: getEmailFromId(req.session.user_id) };
+  let templateVars = {user_id: req.session.user_id, email: getEmailFromId(req.session.user_id) };
   if(req.session.user_id){
     res.redirect('/urls/');
   }
