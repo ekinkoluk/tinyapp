@@ -23,7 +23,7 @@ function addNewUser(userEmail, userPassword) {
 }
 
 function checkEmailExists(userEmail) {
-  for (id in usersDatabase) {
+  for (let id in usersDatabase) {
     if (usersDatabase[id]['email'] === userEmail) {
       return true;
     }
@@ -36,7 +36,7 @@ function getUserById(userID) {
 }
 
 function getUserByEmail(userEmail) {
-  for (id in usersDatabase) {
+  for (let id in usersDatabase) {
     if (usersDatabase[id]['email'] === userEmail) {
       return usersDatabase[id];
     }
@@ -44,7 +44,7 @@ function getUserByEmail(userEmail) {
 }
 function urlsForUser(id) {
   let userUrls = { };
-  for (shortUrl in urlDatabase) {
+  for (let shortUrl in urlDatabase) {
     if (urlDatabase[shortUrl]['userID'] === id) {
       userUrls[shortUrl] = {...urlDatabase[shortUrl]};
     }
@@ -52,7 +52,7 @@ function urlsForUser(id) {
   return userUrls;
 }
 const getEmailFromId = (user_id) => {
-  if(usersDatabase[user_id]) {
+  if (usersDatabase[user_id]) {
     return usersDatabase[user_id].email;
   }
 };
